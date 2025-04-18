@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatBoard - Chat</title>
+    <title>Milele - Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/crypto.js') }}"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -281,7 +282,7 @@
 <body>
     <div class="chat-container">
         <div class="header">
-            <h2>ChatBoard</h2>
+            <h2>Milele</h2>
             <div class="header-controls">
                 <button class="theme-toggle" id="theme-toggle">
                     <i class="fas fa-moon"></i>
@@ -333,48 +334,71 @@
         const themeToggle = document.getElementById('theme-toggle');
 
         // Handle message sending
-        function sendMessage() {
+        async function sendMessage() {
             const content = messageInput.value.trim();
             if (content) {
-                socket.emit('send_message', {
-                    content: content,
-                    type: 'text'
-                });
-                messageInput.value = '';
-                messageInput.style.height = '3rem';
+                try {
+                    // Encrypt the message before sending
+                    const encryptedContent = await encryptMessage(content);
+                    if (encryptedContent) {
+                        socket.emit('send_message', {
+                            content: encryptedContent,
+                            type: 'text'
+                        });
+                        messageInput.value = '';
+                        messageInput.style.height = '3rem';
+                    } else {
+                        console.error('Failed to encrypt message');
+                    }
+                } catch (error) {
+                    console.error('Error encrypting message:', error);
+                }
             }
         }
 
         // Handle incoming messages
-        socket.on('new_message', function(message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = `message ${message.username === '{{ username }}' ? 'sent' : 'received'}`;
-            
-            const header = document.createElement('div');
-            header.className = 'message-header';
-            header.textContent = message.username;
-            
-            const content = document.createElement('div');
-            content.className = 'message-content';
-            
-            if (message.type === 'image') {
-                const img = document.createElement('img');
-                img.src = message.content;
-                content.appendChild(img);
-            } else {
-                content.textContent = message.content;
+        socket.on('new_message', async function(message) {
+            try {
+                // Decrypt the message content if it's a text message
+                if (message.type === 'text') {
+                    message.content = await decryptMessage(message.content);
+                    if (!message.content) {
+                        console.error('Failed to decrypt message');
+                        return;
+                    }
+                }
+
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${message.username === '{{ username }}' ? 'sent' : 'received'}`;
+                
+                const header = document.createElement('div');
+                header.className = 'message-header';
+                header.textContent = message.username;
+                
+                const content = document.createElement('div');
+                content.className = 'message-content';
+                
+                if (message.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = message.content;
+                    content.appendChild(img);
+                } else {
+                    content.textContent = message.content;
+                }
+                
+                const timestamp = document.createElement('div');
+                timestamp.className = 'message-timestamp';
+                timestamp.textContent = message.timestamp;
+                
+                messageElement.appendChild(header);
+                messageElement.appendChild(content);
+                messageElement.appendChild(timestamp);
+                
+                messagesDiv.appendChild(messageElement);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } catch (error) {
+                console.error('Error processing message:', error);
             }
-            
-            const timestamp = document.createElement('div');
-            timestamp.className = 'message-timestamp';
-            timestamp.textContent = message.timestamp;
-            
-            messageElement.appendChild(header);
-            messageElement.appendChild(content);
-            messageElement.appendChild(timestamp);
-            
-            messagesDiv.appendChild(messageElement);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
 
         // Theme toggle functionality
@@ -421,6 +445,24 @@
             document.body.setAttribute('data-theme', 'dark');
             themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
         }
+
+        // Decrypt existing messages on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            const messages = document.querySelectorAll('.message-content');
+            for (const message of messages) {
+                if (!message.querySelector('img')) { // Only decrypt text messages
+                    try {
+                        const encryptedContent = message.textContent;
+                        const decryptedContent = await decryptMessage(encryptedContent);
+                        if (decryptedContent) {
+                            message.textContent = decryptedContent;
+                        }
+                    } catch (error) {
+                        console.error('Error decrypting existing message:', error);
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html> 

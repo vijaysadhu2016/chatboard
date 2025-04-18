@@ -6,18 +6,24 @@ from datetime import datetime
 import base64
 from PIL import Image
 import io
+import eventlet
+
+# Use eventlet for better WebSocket support
+eventlet.monkey_patch()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+
+# Get environment variables with fallbacks
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///chat.db').replace('postgres://', 'postgresql://')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
 # Database Models
 class Message(db.Model):
@@ -33,14 +39,14 @@ class Message(db.Model):
             'username': self.username,
             'content': self.content,
             'type': self.message_type,
-            'timestamp': self.timestamp.strftime('%d %b %y, %I:%M %p')  # Format: 18 Apr 25, 7:30 PM
+            'timestamp': self.timestamp.strftime('%d %b %y, %I:%M %p')
         }
 
 # Hardcoded user credentials
 USERS = {
-    'boss': 'Boss@2126',
-    'dudu': 'dudu@2126',
-    'bubu': 'bubu@2126'
+    'admin': 'password123',
+    'user1': 'password123',
+    'user2': 'password123'
 }
 
 # Create database tables
@@ -92,7 +98,7 @@ def handle_message(data):
         'username': session['username'],
         'content': data.get('content', ''),
         'type': data.get('type', 'text'),
-        'timestamp': current_time.strftime('%d %b %y, %I:%M %p')  # Format: 18 Apr 25, 7:30 PM
+        'timestamp': current_time.strftime('%d %b %y, %I:%M %p')
     }
     
     if message['type'] == 'image':
@@ -136,4 +142,5 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True) 
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host='0.0.0.0', port=port, debug=False) 
