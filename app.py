@@ -101,6 +101,11 @@ def handle_message(data):
     
     if message['type'] == 'image':
         try:
+            # Check if the content is a valid base64 image
+            if not message['content'].startswith('data:image'):
+                print("Invalid image format")
+                return
+                
             image_data = message['content'].split(',')[1]
             image_bytes = base64.b64decode(image_data)
             image = Image.open(io.BytesIO(image_bytes))
@@ -109,11 +114,15 @@ def handle_message(data):
             filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{session['username']}.png"
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             
+            # Ensure the upload directory exists
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            
             # Save image
-            image.save(filepath)
-            message['content'] = f"/uploads/{filename}"
+            image.save(filepath, 'PNG')
+            message['content'] = f"/static/uploads/{filename}"
+            print(f"Image saved successfully: {filepath}")
         except Exception as e:
-            print(f"Error processing image: {e}")
+            print(f"Error processing image: {str(e)}")
             return
     
     # Store message in database
@@ -132,7 +141,7 @@ def handle_message(data):
         
         emit('new_message', message, broadcast=True)
     except Exception as e:
-        print(f"Error saving message: {e}")
+        print(f"Error saving message: {str(e)}")
         db.session.rollback()
 
 @app.route('/uploads/<filename>')
@@ -140,5 +149,5 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5002))
     socketio.run(app, host='0.0.0.0', port=port, debug=False) 

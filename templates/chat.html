@@ -251,6 +251,7 @@
             line-height: 1.5;
             position: relative;
             z-index: 1;
+            white-space: pre-wrap;
         }
 
         .message img {
@@ -281,7 +282,7 @@
             border: 1px solid var(--border-color);
             backdrop-filter: blur(5px);
             position: relative;
-            /* margin-bottom: 2rem; */
+            align-items: flex-start;
         }
 
         .file-label {
@@ -295,6 +296,8 @@
             justify-content: center;
             transition: all 0.3s;
             text-shadow: 0 0 5px rgba(0, 0, 51, 0.5);
+            height: 3rem;
+            flex-shrink: 0;
         }
 
         .file-label:hover {
@@ -306,7 +309,8 @@
             flex-grow: 1;
             position: relative;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            min-height: 3rem;
         }
 
         .message-input {
@@ -318,10 +322,10 @@
             color: var(--text-color);
             font-family: inherit;
             resize: none;
-            height: 3rem;
+            min-height: 3rem;
             transition: all 0.3s;
             text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
-            font-size: 16px; /* Prevent iOS zoom */
+            font-size: 16px;
         }
 
         .message-input:focus {
@@ -346,6 +350,8 @@
             text-shadow: 0 0 5px rgba(0, 0, 51, 0.5);
             position: relative;
             overflow: hidden;
+            height: 3rem;
+            flex-shrink: 0;
         }
 
         .send-btn span {
@@ -478,55 +484,6 @@
             opacity: 0.1;
             pointer-events: none;
         }
-
-        .thinking-container {
-            /* position: fixed; */
-            /* bottom: 1rem; */
-            /* left: 0; */
-            width: 100%;
-            padding: 1rem;
-            text-align: center;
-            z-index: 4;
-        }
-
-        .thinking-text {
-            color: var(--primary-color);
-            font-size: 0.9rem;
-            text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
-            letter-spacing: 1px;
-            min-height: 1.2em;
-            opacity: 0.8;
-        }
-
-        .thinking-text::after {
-            content: '|';
-            animation: blink 1s step-end infinite;
-            color: var(--primary-color);
-        }
-
-        @keyframes typing {
-            from { width: 0 }
-            to { width: 100% }
-        }
-
-        @keyframes deleting {
-            from { width: 100% }
-            to { width: 0 }
-        }
-
-        .typing {
-            display: inline-block;
-            overflow: hidden;
-            white-space: nowrap;
-            animation: typing 3s steps(40, end);
-        }
-
-        .deleting {
-            display: inline-block;
-            overflow: hidden;
-            white-space: nowrap;
-            animation: deleting 2s steps(40, end);
-        }
     </style>
 </head>
 <body>
@@ -573,10 +530,6 @@
                 <span>Send</span>
             </button>
         </div>
-    </div>
-
-    <div class="thinking-container">
-        <div class="thinking-text" id="thinking-text"></div>
     </div>
 
     <script>
@@ -669,12 +622,24 @@
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                // Check if file is an image
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     socket.emit('send_message', {
                         content: e.target.result,
                         type: 'image'
                     });
+                    // Clear the file input
+                    fileInput.value = '';
+                };
+                reader.onerror = function(e) {
+                    console.error('Error reading file:', e);
+                    alert('Error reading file. Please try again.');
                 };
                 reader.readAsDataURL(file);
             }
@@ -684,7 +649,6 @@
         messageInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
             }
         });
 
@@ -717,59 +681,6 @@
                 }
             }
         });
-
-        // Thinking messages array
-        const thinkingMessages = [
-            "Love each other [BY DAD]...",
-            "Decrypting incoming messages...",
-            "Establishing secure connection...",
-            "Monitoring chat activity...",
-            "Running system diagnostics...",
-            "Checking for vulnerabilities...",
-            "Scanning for potential threats...",
-            "Optimizing encryption algorithms...",
-            "Verifying user authentication...",
-            "Initializing secure channels..."
-        ];
-
-        let currentMessageIndex = 0;
-        const thinkingText = document.getElementById('thinking-text');
-
-        function updateThinkingMessage() {
-            const message = thinkingMessages[currentMessageIndex];
-            let i = 0;
-            
-            // Type the message
-            const typeMessage = () => {
-                if (i < message.length) {
-                    thinkingText.textContent = message.substring(0, i + 1);
-                    i++;
-                    setTimeout(typeMessage, 100);
-                } else {
-                    // Wait for 2 seconds after typing
-                    setTimeout(() => {
-                        // Delete the message
-                        const deleteMessage = () => {
-                            if (i > 0) {
-                                thinkingText.textContent = message.substring(0, i - 1);
-                                i--;
-                                setTimeout(deleteMessage, 50);
-                            } else {
-                                // Move to next message
-                                currentMessageIndex = (currentMessageIndex + 1) % thinkingMessages.length;
-                                setTimeout(updateThinkingMessage, 500);
-                            }
-                        };
-                        deleteMessage();
-                    }, 2000);
-                }
-            };
-            
-            typeMessage();
-        }
-
-        // Start the thinking animation
-        updateThinkingMessage();
     </script>
 </body>
 </html> 
