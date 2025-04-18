@@ -6,10 +6,8 @@ from datetime import datetime
 import base64
 from PIL import Image
 import io
-import eventlet
-
-# Use eventlet for better WebSocket support
-eventlet.monkey_patch()
+import gevent.monkey
+gevent.monkey.patch_all()
 
 app = Flask(__name__)
 
@@ -23,7 +21,7 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__fil
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
-socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
 
 # Database Models
 class Message(db.Model):
