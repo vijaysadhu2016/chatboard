@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
 from flask_sqlalchemy import SQLAlchemy
 import os
@@ -11,6 +11,10 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
@@ -29,14 +33,14 @@ class Message(db.Model):
             'username': self.username,
             'content': self.content,
             'type': self.message_type,
-            'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            'timestamp': self.timestamp.strftime('%d %b %y, %I:%M %p')  # Format: 18 Apr 25, 7:30 PM
         }
 
 # Hardcoded user credentials
 USERS = {
-    'admin': 'password123',
-    'user1': 'password123',
-    'user2': 'password123'
+    'boss': 'Boss@2126',
+    'dudu': 'dudu@2126',
+    'bubu': 'bubu@2126'
 }
 
 # Create database tables
@@ -52,8 +56,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         
         if username in USERS and USERS[username] == password:
             session['username'] = username
@@ -80,45 +84,56 @@ def chat():
 
 @socketio.on('send_message')
 def handle_message(data):
+    if 'username' not in session:
+        return
+    
+    current_time = datetime.now()
     message = {
         'username': session['username'],
-        'content': data['content'],
-        'type': data['type'],
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'content': data.get('content', ''),
+        'type': data.get('type', 'text'),
+        'timestamp': current_time.strftime('%d %b %y, %I:%M %p')  # Format: 18 Apr 25, 7:30 PM
     }
     
-    if data['type'] == 'image':
-        # Handle image upload
+    if message['type'] == 'image':
         try:
-            image_data = data['content'].split(',')[1]
+            image_data = message['content'].split(',')[1]
             image_bytes = base64.b64decode(image_data)
             image = Image.open(io.BytesIO(image_bytes))
             
-            # Save image to static folder
-            if not os.path.exists('static/uploads'):
-                os.makedirs('static/uploads')
+            # Generate unique filename
+            filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{session['username']}.png"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             
-            filename = f"static/uploads/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{session['username']}.png"
-            image.save(filename)
-            message['content'] = filename
+            # Save image
+            image.save(filepath)
+            message['content'] = f"/uploads/{filename}"
         except Exception as e:
             print(f"Error processing image: {e}")
             return
     
     # Store message in database
-    db_message = Message(
-        username=message['username'],
-        content=message['content'],
-        message_type=message['type'],
-        timestamp=datetime.strptime(message['timestamp'], '%Y-%m-%d %H:%M:%S')
-    )
-    db.session.add(db_message)
-    db.session.commit()
-    
-    # Add message ID to the response
-    message['id'] = db_message.id
-    
-    emit('new_message', message, broadcast=True)
+    try:
+        db_message = Message(
+            username=message['username'],
+            content=message['content'],
+            message_type=message['type'],
+            timestamp=current_time
+        )
+        db.session.add(db_message)
+        db.session.commit()
+        
+        # Add message ID to the response
+        message['id'] = db_message.id
+        
+        emit('new_message', message, broadcast=True)
+    except Exception as e:
+        print(f"Error saving message: {e}")
+        db.session.rollback()
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True) 
