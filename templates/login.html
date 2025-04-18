@@ -4,89 +4,319 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milele - Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #00ff99;
+            --primary-light: #00cc7a;
+            --bg-color: #0a1a0a;
+            --text-color: #00ff99;
+            --input-bg: #1a2a1a;
+            --border-color: #003300;
+            --shadow: 0 4px 6px -1px rgba(0, 255, 153, 0.2);
+            --glow: 0 0 10px rgba(0, 255, 153, 0.3);
+            --scanline: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 153, 0.05) 0px,
+                rgba(0, 255, 153, 0.05) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, rgba(10, 26, 10, 0.95) 0%, rgba(26, 42, 26, 0.95) 100%),
+                var(--scanline);
+            z-index: 1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 50% 50%, 
+                    rgba(0, 255, 153, 0.05) 0%, 
+                    transparent 50%),
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(0, 255, 153, 0.02) 0px,
+                    rgba(0, 255, 153, 0.02) 1px,
+                    transparent 1px,
+                    transparent 10px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(0, 255, 153, 0.02) 0px,
+                    rgba(0, 255, 153, 0.02) 1px,
+                    transparent 1px,
+                    transparent 10px
+                );
+            animation: backgroundMove 20s linear infinite;
+            z-index: 2;
         }
 
         .login-container {
-            background-color: white;
+            background-color: rgba(10, 26, 10, 0.7);
             padding: 2rem;
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow), var(--glow);
             width: 100%;
             max-width: 400px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 3;
         }
 
         .login-header {
             text-align: center;
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .login-header h1 {
-            color: #7c3aed;
+            color: var(--primary-color);
             font-size: 2rem;
             margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .login-header h1::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+            position: absolute;
+            right: -10px;
+        }
+
+        .login-header p {
+            color: var(--text-color);
+            text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
+            letter-spacing: 1px;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
-        label {
+        .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 500;
+            color: var(--text-color);
+            text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
+            letter-spacing: 1px;
         }
 
-        input {
+        .form-group input {
             width: 100%;
             padding: 0.75rem;
-            border: 2px solid #e2e8f0;
+            background-color: rgba(26, 42, 26, 0.3);
+            border: 1px solid var(--border-color);
             border-radius: 0.5rem;
-            font-family: inherit;
-            font-size: 1rem;
+            color: var(--text-color);
+            font-family: 'Share Tech Mono', monospace;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        input:focus {
+        .form-group input::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(0, 255, 153, 0.05) 50%,
+                transparent 100%
+            );
+            animation: scan 2s linear infinite;
+        }
+
+        .form-group input:focus {
             outline: none;
-            border-color: #7c3aed;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(0, 255, 153, 0.3);
+            background-color: rgba(26, 42, 26, 0.4);
         }
 
-        .error {
-            color: #ef4444;
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        button {
+        .submit-btn {
             width: 100%;
             padding: 0.75rem;
-            background-color: #7c3aed;
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
             border: none;
             border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(26, 42, 26, 0.5);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
         }
 
-        button:hover {
-            background-color: #6d28d9;
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(0, 255, 153, 0.1) 50%,
+                transparent 100%
+            );
+            animation: scan 2s linear infinite;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 153, 0.4);
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100%); }
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        @keyframes backgroundMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100px 100px;
+            }
+        }
+
+        /* Add a subtle noise texture */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        /* Add a subtle grid overlay */
+        .login-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 153, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 153, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .thinking-container {
+            position: fixed;
+            bottom: 2rem;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            z-index: 4;
+        }
+
+        .thinking-text {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
+            letter-spacing: 1px;
+            min-height: 1.2em;
+            opacity: 0.8;
+        }
+
+        .thinking-text::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+            color: var(--primary-color);
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes deleting {
+            from { width: 100% }
+            to { width: 0 }
+        }
+
+        .typing {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end);
+        }
+
+        .deleting {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: deleting 2s steps(40, end);
         }
     </style>
 </head>
@@ -94,9 +324,9 @@
     <div class="login-container">
         <div class="login-header">
             <h1>Milele</h1>
-            <p>Welcome back! Please login to continue.</p>
+            <p>Secure Chat Login</p>
         </div>
-        <form method="POST">
+        <form action="/login" method="POST">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>
@@ -105,11 +335,67 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            {% if error %}
-            <div class="error">{{ error }}</div>
-            {% endif %}
-            <button type="submit">Login</button>
+            <button type="submit" class="submit-btn">Login</button>
         </form>
     </div>
+
+    <div class="thinking-container">
+        <div class="thinking-text" id="thinking-text"></div>
+    </div>
+
+    <script>
+        // Thinking messages array
+        const thinkingMessages = [
+            "Love each other [BY DAD]...",
+            "Initializing secure login...",
+            "Preparing encryption keys...",
+            "Verifying system integrity...",
+            "Establishing secure connection...",
+            "Checking authentication protocols...",
+            "Scanning for security threats...",
+            "Optimizing login sequence...",
+            "Preparing user session...",
+            "Securing communication channels..."
+        ];
+
+        let currentMessageIndex = 0;
+        const thinkingText = document.getElementById('thinking-text');
+
+        function updateThinkingMessage() {
+            const message = thinkingMessages[currentMessageIndex];
+            let i = 0;
+            
+            // Type the message
+            const typeMessage = () => {
+                if (i < message.length) {
+                    thinkingText.textContent = message.substring(0, i + 1);
+                    i++;
+                    setTimeout(typeMessage, 100);
+                } else {
+                    // Wait for 2 seconds after typing
+                    setTimeout(() => {
+                        // Delete the message
+                        const deleteMessage = () => {
+                            if (i > 0) {
+                                thinkingText.textContent = message.substring(0, i - 1);
+                                i--;
+                                setTimeout(deleteMessage, 50);
+                            } else {
+                                // Move to next message
+                                currentMessageIndex = (currentMessageIndex + 1) % thinkingMessages.length;
+                                setTimeout(updateThinkingMessage, 500);
+                            }
+                        };
+                        deleteMessage();
+                    }, 2000);
+                }
+            };
+            
+            typeMessage();
+        }
+
+        // Start the thinking animation
+        updateThinkingMessage();
+    </script>
 </body>
 </html> 
