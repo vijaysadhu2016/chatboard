@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Milele - Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/crypto.js') }}"></script>
@@ -281,7 +281,7 @@
             border: 1px solid var(--border-color);
             backdrop-filter: blur(5px);
             position: relative;
-            margin-bottom: 4rem;
+            /* margin-bottom: 2rem; */
         }
 
         .file-label {
@@ -321,6 +321,7 @@
             height: 3rem;
             transition: all 0.3s;
             text-shadow: 0 0 5px rgba(0, 255, 153, 0.3);
+            font-size: 16px; /* Prevent iOS zoom */
         }
 
         .message-input:focus {
@@ -405,6 +406,11 @@
             .input-container {
                 padding: 0.75rem;
             }
+
+            .message-input {
+                font-size: 16px; /* Ensure font size is maintained on mobile */
+                min-height: 3rem; /* Ensure minimum height */
+            }
         }
 
         @keyframes scan {
@@ -462,14 +468,13 @@
         }
 
         .thinking-container {
-            position: fixed;
-            bottom: 2rem;
-            left: 0;
+            /* position: fixed; */
+            /* bottom: 1rem; */
+            /* left: 0; */
             width: 100%;
             padding: 1rem;
             text-align: center;
             z-index: 4;
-            margin-top: 2rem;
         }
 
         .thinking-text {
