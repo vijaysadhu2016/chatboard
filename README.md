@@ -43,10 +43,6 @@ http://localhost:5000
 
 The following users are pre-configured in the system:
 
-- Username: `admin`, Password: `password123`
-- Username: `user1`, Password: `password123`
-- Username: `user2`, Password: `password123`
-
 ## Features Usage
 
 - **Text Messages**: Type your message in the input box and press Enter or click Send
