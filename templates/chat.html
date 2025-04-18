@@ -348,6 +348,10 @@
             overflow: hidden;
         }
 
+        .send-btn span {
+            display: inline;
+        }
+
         .send-btn::before {
             content: '';
             position: absolute;
@@ -408,8 +412,16 @@
             }
 
             .message-input {
-                font-size: 16px; /* Ensure font size is maintained on mobile */
-                min-height: 3rem; /* Ensure minimum height */
+                font-size: 16px;
+                min-height: 3rem;
+            }
+
+            .send-btn {
+                padding: 0.75rem;
+            }
+
+            .send-btn span {
+                display: none;
             }
         }
 
