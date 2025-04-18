@@ -43,8 +43,8 @@ class Message(db.Model):
 # Hardcoded user credentials
 USERS = {
     'boss': 'Boss@2126',
-    'mufasa': 'dudu@2126',
-    'sarabi': 'bubu@2126'
+    'kim': 'dudu@2126',
+    'moon': 'bubu@2126'
 }
 
 # Create database tables
